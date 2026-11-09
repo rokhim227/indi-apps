@@ -660,10 +660,10 @@
                     <div class="relative" id="wrapBahanDropdownTf">
                         <label class="block text-xs font-medium text-slate-500 mb-1">Cari Bahan di Store Asal</label>
                         <div class="relative">
-                            <input type="text" id="tfSearchBahan" onkeyup="filterTfDropdown()" onfocus="showTfDropdown()" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ketik nama/kode...">
-                            <i class="fa-solid fa-chevron-down absolute right-3 top-2.5 text-slate-400"></i>
+                            <input type="text" id="tfSearchBahan" onkeyup="filterDropdownBahan('tf')" onfocus="showDropdownBahan('tf')" oninput="handleSearchInput('tf')" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ketik nama/kode...">
+                            <i class="fa-solid fa-chevron-down absolute right-3 top-2.5 text-slate-400 cursor-pointer" onclick="toggleDropdownBahan('tf')"></i>
                         </div>
-                        <ul id="listBahanDropdownTf" class="hidden absolute z-50 w-full bg-white border border-slate-300 shadow-xl rounded-lg mt-1 max-h-56 overflow-y-auto custom-scrollbar"></ul>
+                        <ul id="listBahanDropdown_tf" class="hidden absolute z-50 w-full bg-white border border-slate-300 shadow-xl rounded-lg mt-1 max-h-56 overflow-y-auto custom-scrollbar"></ul>
                         <input type="hidden" id="tfKodeBahan">
                         <input type="hidden" id="tfNamaBahan">
                         <input type="hidden" id="tfKategori">
@@ -848,6 +848,7 @@
                 <div id="setTab-user" class="hidden space-y-6">
                     <h3 class="text-lg font-bold text-slate-700 border-b pb-2">Tambah Pengguna Baru</h3>
                     <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
+                        <input type="hidden" id="setUserId">
                         <select id="setUserRole" onchange="toggleUserFields()" class="w-full md:w-1/3 border border-slate-300 rounded-lg px-4 py-2 outline-none bg-white">
                             <option value="Admin">Admin</option>
                             <option value="Admin Warehouse">Admin Warehouse</option>
@@ -861,7 +862,10 @@
                             <div id="wrapUsername"><label class="block text-sm mb-1">Username Login</label><input type="text" id="setUserLogin" class="w-full border border-slate-300 rounded-lg px-4 py-2 bg-white"></div>
                             <div><label class="block text-sm mb-1">Password</label><input type="password" id="setUserPass" class="w-full border border-slate-300 rounded-lg px-4 py-2"></div>
                         </div>
-                        <button onclick="saveNewUser()" class="w-full md:w-auto bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-blue-700 transition mt-2 flex items-center justify-center gap-2"><i class="fa-solid fa-user-plus"></i> <span>Buat Akun</span></button>
+                        <div class="flex gap-2 mt-2">
+                            <button id="btnSaveUser" onclick="saveNewUser()" class="w-full md:w-auto bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-blue-700 transition flex items-center justify-center gap-2"><i class="fa-solid fa-user-plus"></i> <span>Buat Akun</span></button>
+                            <button id="btnCancelEditUser" onclick="cancelEditUser()" class="hidden w-full md:w-auto bg-slate-300 text-slate-700 px-6 py-2.5 rounded-lg font-medium hover:bg-slate-400 transition items-center justify-center gap-2"><i class="fa-solid fa-xmark"></i> <span>Batal</span></button>
+                        </div>
                     </div>
                     <div class="overflow-x-auto border border-slate-200 rounded-xl">
                         <table class="w-full text-left text-sm whitespace-nowrap min-w-max"><thead class="bg-slate-50 border-b border-slate-200"><tr><th class="px-5 py-3">Nama</th><th class="px-5 py-3">Username</th><th class="px-5 py-3">Password</th><th class="px-5 py-3">Role</th><th class="px-5 py-3">Resto</th><th class="px-5 py-3 text-center">Aksi</th></tr></thead><tbody id="tblUserList" class="divide-y divide-slate-100"></tbody></table>
@@ -871,16 +875,17 @@
                 <div id="setTab-master" class="hidden space-y-6">
                     <h3 class="text-lg font-bold text-slate-700 border-b pb-2">Input Master Data Bahan</h3>
                     <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 shadow-sm">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                             <div><label class="block text-sm mb-1">Kode Bahan</label><input type="text" id="setMstKode" class="w-full border border-slate-300 rounded-lg px-3 py-2 uppercase font-mono"></div>
-                            <div class="md:col-span-2"><label class="block text-sm mb-1">Nama Bahan</label><input type="text" id="setMstNama" class="w-full border border-slate-300 rounded-lg px-3 py-2"></div>
+                            <div><label class="block text-sm mb-1">Nama Bahan</label><input type="text" id="setMstNama" class="w-full border border-slate-300 rounded-lg px-3 py-2"></div>
                             <div><label class="block text-sm mb-1">Kategori</label><select id="setMstKat" class="w-full border border-slate-300 rounded-lg px-3 py-2"><option value="Frozen">Frozen</option><option value="Dry">Dry</option></select></div>
-                            <div class="md:col-span-2"><label class="block text-sm mb-1">Pilihan Resto</label><select id="setMstResto" class="w-full border border-slate-300 rounded-lg px-3 py-2 set-resto-select"></select></div>
+                            <div><label class="block text-sm mb-1">Pilihan Resto</label><select id="setMstResto" class="w-full border border-slate-300 rounded-lg px-3 py-2 set-resto-select"></select></div>
                         </div>
                         <div class="p-4 border border-blue-200 bg-blue-50/50 rounded-lg flex flex-col md:flex-row gap-3">
                             <div class="w-full"><label class="block text-xs mb-1">Satuan Besar</label><input type="text" id="setMstSatB" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" placeholder="Karton"></div>
                             <div class="w-full md:w-32"><label class="block text-xs mb-1">Konversi</label><input type="number" id="setMstKonv" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm text-center" placeholder="12"></div>
                             <div class="w-full"><label class="block text-xs mb-1">Satuan Kecil</label><input type="text" id="setMstSatK" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" placeholder="Pack"></div>
+                            <div class="w-full border-l border-blue-200 pl-3"><label class="block text-xs font-bold text-blue-800 mb-1">Stock Awal (Sat. Besar)</label><input type="number" id="setMstStockAwal" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm text-center font-bold" placeholder="0"></div>
                         </div>
                         <button onclick="saveMasterData()" class="w-full md:w-auto bg-blue-600 text-white px-8 py-2.5 rounded-lg font-bold hover:bg-blue-700 transition mt-4 flex items-center justify-center gap-2"><i class="fa-solid fa-check-circle"></i> <span>Simpan Master Data</span></button>
                     </div>
@@ -1654,8 +1659,7 @@
             else if (prefix === 'sj') resto = document.getElementById('sjResto') ? document.getElementById('sjResto').value : '';
             else if (prefix === 'tf') resto = document.getElementById('tfSrcResto') ? document.getElementById('tfSrcResto').value : '';
 
-            const listId = prefix === 'tf' ? 'listBahanDropdownTf' : `listBahanDropdown_${prefix}`;
-            const list = document.getElementById(listId);
+            const list = document.getElementById(`listBahanDropdown_${prefix}`);
             if (!list) return;
 
             let options = State.masterData;
@@ -1672,21 +1676,18 @@
         }
         function showDropdownBahan(prefix) {
             setupDropdownBahan(prefix); filterDropdownBahan(prefix);
-            const listId = prefix === 'tf' ? 'listBahanDropdownTf' : `listBahanDropdown_${prefix}`;
-            const list = document.getElementById(listId);
+            const list = document.getElementById(`listBahanDropdown_${prefix}`);
             if(list) list.classList.remove('hidden');
         }
         function toggleDropdownBahan(prefix) {
-            const listId = prefix === 'tf' ? 'listBahanDropdownTf' : `listBahanDropdown_${prefix}`;
-            const list = document.getElementById(listId);
+            const list = document.getElementById(`listBahanDropdown_${prefix}`);
             if(!list) return;
             if(list.classList.contains('hidden')) showDropdownBahan(prefix); else list.classList.add('hidden');
         }
         function filterDropdownBahan(prefix) {
             const inputElement = document.getElementById(`${prefix}SearchBahan`); if(!inputElement) return;
             const input = inputElement.value.toLowerCase();
-            const listId = prefix === 'tf' ? 'listBahanDropdownTf' : `listBahanDropdown_${prefix}`;
-            const list = document.getElementById(listId); if(!list) return;
+            const list = document.getElementById(`listBahanDropdown_${prefix}`); if(!list) return;
             const items = list.getElementsByTagName('li');
             for(let i=0; i < items.length; i++) {
                 if(items[i].classList.contains('italic')) continue; 
@@ -1716,8 +1717,7 @@
         function selectBahan(kode, nama, prefix) {
             document.getElementById(`${prefix}SearchBahan`).value = `${kode} - ${nama}`;
             document.getElementById(`${prefix}KodeBahan`).value = kode;
-            const listId = prefix === 'tf' ? 'listBahanDropdownTf' : `listBahanDropdown_${prefix}`;
-            document.getElementById(listId).classList.add('hidden');
+            document.getElementById(`listBahanDropdown_${prefix}`).classList.add('hidden');
             processBahanSelection(kode, prefix); 
         }
 
@@ -2304,7 +2304,9 @@
             const todayStr = new Date().toISOString().split('T')[0];
             const selResto = State.user.role === 'Admin' ? 'all' : State.user.resto;
             
-            let fOut = State.outHistory.filter(r => r.Kategori === 'Frozen' && r.Tanggal.startsWith(todayStr));
+            // Filter hanya bahan yang valid untuk di-thawing
+            const allowedThawing = ['Adonan Pangsit', 'Ayam Cincang', 'Udang Rambutan (Pentol)', 'Mie', 'Kulit Pangsit', 'Surai Naga', 'Krupuk Mie'];
+            let fOut = State.outHistory.filter(r => r.Kategori === 'Frozen' && r.Tanggal.startsWith(todayStr) && allowedThawing.includes(r.NamaBahan));
             if(selResto !== 'all') fOut = fOut.filter(r => r.Resto === selResto);
 
             if(fOut.length === 0) {
@@ -2773,25 +2775,127 @@
             else { wR.classList.remove('hidden'); login.disabled=(role==='Store Manager'); if(role==='Store Manager'){ login.value=document.getElementById('setUserResto').value; login.classList.add('bg-slate-100'); }else{ login.disabled=false; login.classList.remove('bg-slate-100');} }
         }
         document.addEventListener('change', e => { if(e.target.id==='setUserResto' && document.getElementById('setUserRole').value==='Store Manager') document.getElementById('setUserLogin').value=e.target.value; });
+        
         function saveNewUser() {
-            const payload = { id: 'U'+Date.now(), name: document.getElementById('setUserName').value, username: document.getElementById('setUserLogin').value, pass: document.getElementById('setUserPass').value, role: document.getElementById('setUserRole').value, resto: (document.getElementById('setUserRole').value==='Admin' || document.getElementById('setUserRole').value==='Admin Warehouse') ? 'Semua Resto' : document.getElementById('setUserResto').value };
+            const existingId = document.getElementById('setUserId').value;
+            const payload = { id: existingId || ('U'+Date.now()), name: document.getElementById('setUserName').value, username: document.getElementById('setUserLogin').value, pass: document.getElementById('setUserPass').value, role: document.getElementById('setUserRole').value, resto: (document.getElementById('setUserRole').value==='Admin' || document.getElementById('setUserRole').value==='Admin Warehouse') ? 'Semua Resto' : document.getElementById('setUserResto').value };
             if(!payload.name || !payload.username || !payload.pass) return Swal.fire('Peringatan', 'Harap isi form', 'warning');
-            State.users.push({ID: payload.id, Nama: payload.name, Username: payload.username, Password: payload.pass, Role: payload.role, Resto: payload.resto});
-            renderUserTable(); document.getElementById('setUserName').value=''; document.getElementById('setUserLogin').value=''; document.getElementById('setUserPass').value='';
+            
+            if(existingId) {
+                const idx = State.users.findIndex(u => u.ID === existingId);
+                if(idx > -1) { State.users[idx].Nama = payload.name; State.users[idx].Username = payload.username; State.users[idx].Password = payload.pass; State.users[idx].Role = payload.role; State.users[idx].Resto = payload.resto; }
+            } else {
+                State.users.push({ID: payload.id, Nama: payload.name, Username: payload.username, Password: payload.pass, Role: payload.role, Resto: payload.resto});
+            }
+            
+            cancelEditUser();
             Swal.fire({icon: 'success', title: 'Tersimpan', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500}); 
+            runGas('saveUser', payload).then(d => { if(d) syncLocalState(d); renderUserTable(); }).catch(e => { Swal.fire('Error', 'Sinkronisasi gagal.', 'error'); });
         }
-        function renderUserTable() { document.getElementById('tblUserList').innerHTML = State.users.map((u,i)=>`<tr><td class="px-5 py-2">${u.Nama}</td><td class="px-5 py-2">${u.Username}</td><td class="px-5 py-2 font-mono text-slate-500">***</td><td class="px-5 py-2">${u.Role}</td><td class="px-5 py-2">${u.Resto}</td><td class="px-5 py-2 text-center flex justify-center gap-1"><button onclick="viewUser(${i})" class="text-blue-500 hover:bg-blue-50 px-2 py-1 rounded"><i class="fa-solid fa-eye"></i></button></td></tr>`).join(''); }
-        function viewUser(idx) { const u = State.users[idx]; Swal.fire({ title: 'Detail', html: `<p>Nama: ${u.Nama}</p><p>Username: ${u.Username}</p><p>Role: ${u.Role}</p>`, showConfirmButton: true, confirmButtonText: 'Tutup' }); }
+        function cancelEditUser() {
+            document.getElementById('setUserId').value = ''; document.getElementById('setUserName').value=''; document.getElementById('setUserLogin').value=''; document.getElementById('setUserPass').value='';
+            document.getElementById('btnSaveUser').innerHTML = `<i class="fa-solid fa-user-plus"></i> <span>Buat Akun</span>`;
+            document.getElementById('btnCancelEditUser').classList.add('hidden');
+            renderUserTable();
+        }
+        function renderUserTable() { document.getElementById('tblUserList').innerHTML = State.users.map((u,i)=>`<tr><td class="px-5 py-2">${u.Nama}</td><td class="px-5 py-2">${u.Username}</td><td class="px-5 py-2 font-mono text-slate-500">***</td><td class="px-5 py-2">${u.Role}</td><td class="px-5 py-2">${u.Resto}</td><td class="px-5 py-2 text-center flex justify-center gap-1"><button onclick="viewUser(${i})" class="text-blue-500 hover:bg-blue-50 px-2 py-1 rounded" title="Detail"><i class="fa-solid fa-eye"></i></button><button onclick="editUser(${i})" class="text-amber-500 hover:bg-amber-50 px-2 py-1 rounded" title="Edit"><i class="fa-solid fa-pen"></i></button><button onclick="deleteUserItem(${i})" class="text-red-500 hover:bg-red-50 px-2 py-1 rounded" title="Hapus"><i class="fa-solid fa-trash"></i></button></td></tr>`).join(''); }
+        function viewUser(idx) { 
+            const u = State.users[idx]; 
+            Swal.fire({
+                title: 'Detail Pengguna',
+                html: `<div class="text-left space-y-2 mt-4 p-4 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="grid grid-cols-2 gap-2 border-b border-slate-200 pb-2"><span class="text-slate-500 text-sm">Nama Lengkap</span> <span class="font-bold text-slate-800">${u.Nama}</span></div>
+                    <div class="grid grid-cols-2 gap-2 border-b border-slate-200 pb-2 pt-2"><span class="text-slate-500 text-sm">Username</span> <span class="font-bold text-slate-800">${u.Username}</span></div>
+                    <div class="grid grid-cols-2 gap-2 border-b border-slate-200 pb-2 pt-2"><span class="text-slate-500 text-sm">Password</span> <span class="font-mono font-bold text-blue-600">${u.Password}</span></div>
+                    <div class="grid grid-cols-2 gap-2 border-b border-slate-200 pb-2 pt-2"><span class="text-slate-500 text-sm">Role Akses</span> <span class="font-bold text-emerald-600">${u.Role}</span></div>
+                    <div class="grid grid-cols-2 gap-2 pt-2"><span class="text-slate-500 text-sm">Asal Resto</span> <span class="font-bold text-slate-800">${u.Resto}</span></div>
+                </div>`,
+                showConfirmButton: true, confirmButtonText: 'Tutup', customClass: { popup: 'rounded-2xl' }
+            });
+        }
+        function editUser(idx) {
+            const u = State.users[idx];
+            document.getElementById('setUserId').value = u.ID;
+            document.getElementById('setUserRole').value = u.Role; toggleUserFields();
+            document.getElementById('setUserName').value = u.Nama;
+            document.getElementById('setUserLogin').value = u.Username;
+            document.getElementById('setUserPass').value = u.Password;
+            if(u.Role !== 'Admin' && u.Role !== 'Admin Warehouse') document.getElementById('setUserResto').value = u.Resto;
+            
+            document.getElementById('btnSaveUser').innerHTML = `<i class="fa-solid fa-save"></i> <span>Update Akun</span>`;
+            document.getElementById('btnCancelEditUser').classList.remove('hidden');
+            document.getElementById('btnCancelEditUser').classList.add('flex');
+            document.getElementById('setTab-user').scrollIntoView({behavior: 'smooth'});
+        }
+        function deleteUserItem(idx) {
+            Swal.fire({title: 'Hapus Pengguna?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, Hapus', confirmButtonColor: '#ef4444'}).then(r => {
+                if(r.isConfirmed) { 
+                    const id = State.users[idx].ID;
+                    State.users.splice(idx,1); renderUserTable(); 
+                    runGas('deleteUser', id).then(d=>{ if(d) syncLocalState(d); });
+                }
+            });
+        }
 
         function saveMasterData() {
-            const payload = { kode: document.getElementById('setMstKode').value, nama: document.getElementById('setMstNama').value, kat: document.getElementById('setMstKat').value, resto: document.getElementById('setMstResto').value, satB: document.getElementById('setMstSatB').value, satK: document.getElementById('setMstSatK').value, konv: document.getElementById('setMstKonv').value };
+            const payload = { kode: document.getElementById('setMstKode').value, nama: document.getElementById('setMstNama').value, kat: document.getElementById('setMstKat').value, resto: document.getElementById('setMstResto').value, satB: document.getElementById('setMstSatB').value, satK: document.getElementById('setMstSatK').value, konv: document.getElementById('setMstKonv').value, stockAwal: document.getElementById('setMstStockAwal').value || 0 };
             if(!payload.kode || !payload.nama) return Swal.fire('Peringatan', 'Harap isi form', 'warning');
             State.masterData.push({KodeBahan: payload.kode, NamaBahan: payload.nama, Kategori: payload.kat, Resto: payload.resto, SatuanBesar: payload.satB, SatuanKecil: payload.satK, Konversi: payload.konv});
-            renderMasterTable(); document.getElementById('setMstKode').value=''; document.getElementById('setMstNama').value='';
-            Swal.fire({icon: 'success', title: 'Tersimpan', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500});
+            renderMasterTable(); document.getElementById('setMstKode').value=''; document.getElementById('setMstNama').value=''; document.getElementById('setMstStockAwal').value='';
+            Swal.fire({icon: 'success', title: 'Tersimpan', text: 'Tersimpan ke database Master Data (serta Stock jika diisi).', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000});
+            runGas('saveMaster', payload).then(d => { if(d) syncLocalState(d); renderMasterTable(); }).catch(e => { Swal.fire('Error', 'Gagal menyinkronkan data dengan server.', 'error') });
         }
-        function deleteMasterItem(idx) { State.masterData.splice(idx,1); renderMasterTable(); }
-        function renderMasterTable() { document.getElementById('tblMasterList').innerHTML = State.masterData.map((m,i)=>`<tr><td class="px-5 py-2 font-mono text-blue-600">${m.KodeBahan}</td><td class="px-5 py-2"><div class="font-medium">${m.NamaBahan}</div><div class="text-[10px] text-slate-500">${m.Resto}</div></td><td class="px-5 py-2">${m.Kategori}</td><td class="px-5 py-2 text-center bg-blue-50/30">${m.Konversi}</td><td class="px-5 py-2 text-center flex justify-center gap-1"><button onclick="deleteMasterItem(${i})" class="text-red-500 hover:bg-red-50 px-2 py-1 rounded"><i class="fa-solid fa-trash"></i></button></td></tr>`).join(''); }
+        function deleteMasterItem(idx) { 
+            Swal.fire({title: 'Hapus Master Data?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, Hapus', confirmButtonColor: '#ef4444'}).then(r => {
+                if(r.isConfirmed) {
+                    Swal.fire({title: 'Menghapus...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+                    runGas('deleteMaster', idx).then(d=>{
+                        if(d) syncLocalState(d);
+                        renderMasterTable();
+                        Swal.fire({icon: 'success', title: 'Terhapus', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500});
+                    }).catch(e => { Swal.fire('Error', 'Gagal menghapus data master.', 'error'); });
+                }
+            });
+        }
+
+        function renderMasterTable() {
+            document.getElementById('tblMasterList').innerHTML = State.masterData.map((m,i)=>`<tr>
+                <td class="px-5 py-2 font-mono text-blue-600">${m.KodeBahan}</td>
+                <td class="px-5 py-2">
+                    <div class="font-medium text-slate-800">${m.NamaBahan}</div>
+                    <div class="text-[10px] text-slate-500 mt-0.5"><i class="fa-solid fa-store mr-1"></i>${m.Resto}</div>
+                </td>
+                <td class="px-5 py-2">${m.Kategori}</td>
+                <td class="px-5 py-2 text-center bg-blue-50/30">1 ${m.SatuanBesar} = ${m.Konversi} ${m.SatuanKecil}</td>
+                <td class="px-5 py-2 text-center flex justify-center gap-1">
+                    <button onclick="viewMaster(${i})" class="text-blue-500 hover:bg-blue-50 px-2 py-1 rounded" title="View Detail"><i class="fa-solid fa-eye"></i></button>
+                    <button onclick="editMaster(${i})" class="text-amber-500 hover:bg-amber-50 px-2 py-1 rounded" title="Edit Master Data"><i class="fa-solid fa-pen"></i></button>
+                    <button onclick="deleteMasterItem(${i})" class="text-red-500 hover:bg-red-50 px-2 py-1 rounded" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            </tr>`).join('');
+        }
+
+        function viewMaster(idx) {
+            const m = State.masterData[idx];
+            Swal.fire({ title: 'Detail Master Data', html: `<div class="text-left space-y-2 mt-4"><p><span class="text-slate-500 text-sm">Kode Bahan:</span> <br><b class="font-mono text-blue-600">${m.KodeBahan}</b></p><p><span class="text-slate-500 text-sm">Nama Bahan:</span> <br><b>${m.NamaBahan}</b></p><p><span class="text-slate-500 text-sm">Kategori:</span> <br><b>${m.Kategori}</b></p><p><span class="text-slate-500 text-sm">Asal Resto:</span> <br><b>${m.Resto}</b></p><p><span class="text-slate-500 text-sm">Data Konversi:</span> <br><b>1 ${m.SatuanBesar} = ${m.Konversi} ${m.SatuanKecil}</b></p></div>`, showConfirmButton: true, confirmButtonText: 'Tutup' });
+        }
+
+        function editMaster(idx) {
+            const m = State.masterData[idx];
+            document.getElementById('setMstKode').value = m.KodeBahan; document.getElementById('setMstNama').value = m.NamaBahan;
+            document.getElementById('setMstKat').value = m.Kategori; document.getElementById('setMstResto').value = m.Resto;
+            document.getElementById('setMstSatB').value = m.SatuanBesar; document.getElementById('setMstSatK').value = m.SatuanKecil;
+            document.getElementById('setMstKonv').value = m.Konversi;
+            
+            Swal.fire({title: 'Mempersiapkan...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+            runGas('deleteMaster', idx).then(d => { 
+                if(d) syncLocalState(d); 
+                renderMasterTable(); 
+                Swal.fire('Mode Edit', 'Data bahan dipindahkan ke form input di atas. Silakan ubah lalu klik Simpan Master Data.', 'info'); 
+            }).catch(e => { Swal.fire('Error', 'Gagal memproses mode edit', 'error'); });
+            document.getElementById('setTab-master').scrollIntoView({behavior: 'smooth'});
+        }
+
     </script>
 </body>
 </html>
