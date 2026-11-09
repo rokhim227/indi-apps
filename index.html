@@ -2841,6 +2841,16 @@
             const payload = { kode: document.getElementById('setMstKode').value, nama: document.getElementById('setMstNama').value, kat: document.getElementById('setMstKat').value, resto: document.getElementById('setMstResto').value, satB: document.getElementById('setMstSatB').value, satK: document.getElementById('setMstSatK').value, konv: document.getElementById('setMstKonv').value, stockAwal: document.getElementById('setMstStockAwal').value || 0 };
             if(!payload.kode || !payload.nama) return Swal.fire('Peringatan', 'Harap isi form', 'warning');
             State.masterData.push({KodeBahan: payload.kode, NamaBahan: payload.nama, Kategori: payload.kat, Resto: payload.resto, SatuanBesar: payload.satB, SatuanKecil: payload.satK, Konversi: payload.konv});
+            
+            // Tambahkan langsung data ini (optimistic) ke tabel stock secara realtime jika > 0
+            if(parseFloat(payload.stockAwal) > 0) {
+                let qtyKecil = parseFloat(payload.stockAwal) * parseFloat(payload.konv);
+                State.stockData.push({
+                    KodeBahan: payload.kode.toUpperCase(), NamaBahan: payload.nama, Kategori: payload.kat, Resto: payload.resto,
+                    QtyBesar: payload.stockAwal + ' ' + payload.satB, QtyKecil: qtyKecil + ' ' + payload.satK, KodeLot: '-', KodeProduksi: '-', ExpDate: '-'
+                });
+            }
+
             renderMasterTable(); document.getElementById('setMstKode').value=''; document.getElementById('setMstNama').value=''; document.getElementById('setMstStockAwal').value='';
             Swal.fire({icon: 'success', title: 'Tersimpan', text: 'Tersimpan ke database Master Data (serta Stock jika diisi).', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000});
             runGas('saveMaster', payload).then(d => { if(d) syncLocalState(d); renderMasterTable(); }).catch(e => { Swal.fire('Error', 'Gagal menyinkronkan data dengan server.', 'error') });
