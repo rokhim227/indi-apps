@@ -795,7 +795,7 @@
                 <div class="overflow-x-auto p-0">
                     <table class="w-full text-left text-sm whitespace-nowrap min-w-max">
                         <thead class="bg-white border-b border-slate-100">
-                            <tr><th class="px-5 py-3">Kode</th><th class="px-5 py-3">Bahan</th><th class="px-5 py-3">Penyimpanan</th><th class="px-5 py-3">Stock Besar</th><th class="px-5 py-3">Stock Kecil</th><th class="px-5 py-3">Resto</th></tr>
+                            <tr><th class="px-5 py-3">Kode</th><th class="px-5 py-3">Bahan</th><th class="px-5 py-3">Penyimpanan</th><th class="px-5 py-3">Stock Besar</th><th class="px-5 py-3">Stock Kecil</th><th class="px-5 py-3">Resto</th><th class="px-5 py-3 text-center">Aksi</th></tr>
                         </thead>
                         <tbody id="storageTableBody" class="divide-y divide-slate-50"></tbody>
                     </table>
@@ -2163,14 +2163,23 @@
                 else {
                     document.getElementById('scanHistEmpty').classList.add('hidden');
                     const start = (State.scanHistPage - 1) * 5; const paginated = State.scanHistFiltered.slice(start, start + 5);
-                    tbody.innerHTML = paginated.map(r => `
+                    tbody.innerHTML = paginated.map(r => {
+                        let delBtn = '';
+                        if (State.user.role === 'Admin') {
+                            delBtn = `<button onclick="deleteTransaction('${r.ID}')" class="text-red-500 hover:bg-red-50 p-1.5 rounded ml-1" title="Hapus"><i class="fa-solid fa-trash"></i></button>`;
+                        }
+                        return `
                         <tr class="hover:bg-slate-50"><td class="px-5 py-3 text-xs">${r.Tanggal}</td><td class="px-5 py-3 font-mono text-xs">${r.KodeBahan}</td>
                         <td class="px-5 py-3 font-medium">${r.NamaBahan}</td><td class="px-5 py-3 text-xs">${r.Kategori}</td>
                         <td class="px-5 py-3 font-bold text-blue-600">${Math.abs(parseFloat(r.Qty))} <span class="text-xs font-normal">${r.Satuan}</span></td>
                         <td class="px-5 py-3 text-xs leading-tight">L:${r.KodeLot || '-'}<br>P:${r.KodeProduksi || '-'}<br>E:${r.ExpDate || '-'}</td>
                         <td class="px-5 py-3 text-xs">${r.Resto}</td>
-                        <td class="px-5 py-3 text-center"><button onclick="viewTransactionDetail('${r.ID}')" class="text-blue-500 hover:bg-blue-50 p-1.5 rounded" title="View"><i class="fa-solid fa-eye"></i></button></td></tr>
-                    `).join('');
+                        <td class="px-5 py-3 text-center whitespace-nowrap">
+                            <button onclick="viewTransactionDetail('${r.ID}')" class="text-blue-500 hover:bg-blue-50 p-1.5 rounded" title="View"><i class="fa-solid fa-eye"></i></button>
+                            ${delBtn}
+                        </td></tr>
+                        `;
+                    }).join('');
                 }
                 if(wrap) wrap.classList.remove('updating');
             }, 200);
@@ -2192,6 +2201,30 @@
                     <div class="grid grid-cols-2 gap-2 border-b border-slate-200 pb-2 pt-2"><span class="text-slate-500">Qty</span> <span class="font-bold text-blue-600 text-lg">${Math.abs(parseFloat(trx.Qty))} ${trx.Satuan}</span><span class="text-slate-500">Kode Lot</span> <span class="font-bold text-slate-800">${trx.KodeLot || '-'}</span><span class="text-slate-500">Kode Produksi</span> <span class="font-bold text-slate-800">${trx.KodeProduksi || '-'}</span><span class="text-slate-500">Expired</span> <span class="font-bold text-slate-800">${trx.ExpDate || '-'}</span></div>
                     <div class="grid grid-cols-2 gap-2 pt-2"><span class="text-slate-500">Petugas</span> <span class="font-bold text-slate-800">${trx.Petugas}</span><span class="text-slate-500">Resto</span> <span class="font-bold text-slate-800">${trx.Resto}</span></div>
                 </div>`, showCloseButton: true, showConfirmButton: false, customClass: { popup: 'rounded-2xl' }
+            });
+        }
+
+        window.deleteTransaction = function(id) {
+            Swal.fire({
+                title: 'Hapus Riwayat Transaksi?',
+                text: 'Data riwayat ini akan dihapus secara permanen dari sistem.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'Ya, Hapus'
+            }).then(res => {
+                if (res.isConfirmed) {
+                    Swal.fire({title: 'Memproses...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+                    State.inHistory = State.inHistory.filter(t => t.ID !== id);
+                    State.outHistory = State.outHistory.filter(t => t.ID !== id);
+                    filterScanHistory();
+                    
+                    runGas('deleteTransactionData', id).then(d => {
+                        if(d) syncLocalState(d);
+                        filterScanHistory();
+                        Swal.fire({icon: 'success', title: 'Terhapus!', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500});
+                    }).catch(e => { Swal.fire('Error', 'Gagal menghapus riwayat.', 'error'); });
+                }
             });
         }
 
@@ -2351,9 +2384,8 @@
                     Swal.fire({title: 'Memproses...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
                     
                     const outPayload = { kode, nama, kategori: kat, qty: "-"+qty, satuan, lot: stock.KodeLot, produksi: stock.KodeProduksi, exp: stock.ExpDate, petugas: State.user.name, resto: src };
-                    const inPayload = { kode, nama, kategori: kat, qty: qty, satuan, lot: stock.KodeLot, produksi: stock.KodeProduksi, exp: stock.ExpDate, petugas: State.user.name, resto: dest };
+                    const inPayload = { kode, nama, kategori: kat, qty: qty, satuan, lot: stock.KodeLot, produksi: stock.KodeProduksi, exp: stock.ExpDate, petugas: State.user.name, resto: dest, penyimpanan: stock.Penyimpanan }; 
 
-                    // Simulasi API run sequentially
                     runGas('saveTransaction', 'outbound', outPayload).then(res1 => {
                         return runGas('saveTransaction', 'inbound', inPayload);
                     }).then(res2 => {
@@ -2372,7 +2404,6 @@
             })
         }
 
-
         // --- THAWING LOGIC ---
         function loadThawingView(container) {
             container.appendChild(document.getElementById('tpl-thawing').content.cloneNode(true));
@@ -2386,12 +2417,10 @@
             const todayStr = new Date().toISOString().split('T')[0];
             const selResto = State.user.role === 'Admin' ? 'all' : State.user.resto;
             
-            // Filter hanya bahan yang valid untuk di-thawing
             const allowedThawing = ['Adonan Pangsit', 'Ayam Cincang', 'Udang Rambutan (Pentol)', 'Mie', 'Kulit Pangsit', 'Surai Naga', 'Krupuk Mie'];
             let fOut = State.outHistory.filter(r => r.Kategori === 'Frozen' && r.Tanggal.startsWith(todayStr) && allowedThawing.includes(r.NamaBahan));
             if(selResto !== 'all') fOut = fOut.filter(r => r.Resto === selResto);
 
-            // Hide already active thawings
             const activeTrxIds = State.activeThawings.map(t => t.trxId);
             fOut = fOut.filter(r => !activeTrxIds.includes(r.ID));
 
@@ -2490,14 +2519,12 @@
             State.activeThawings.forEach(t => {
                 const timeLeft = t.endTime - now;
                 
-                // 10 minutes warning (600000 ms)
                 if (timeLeft <= 600000 && timeLeft > 0 && !t.notif10) {
                     t.notif10 = true;
                     needsRender = true;
                     sendTelegramMsg(`⏳ <b>THAWING WARNING (10 Menit)</b>\nBahan: <b>${t.nama}</b> (${t.qty} ${t.satuan})\nLokasi: <b>${t.resto}</b>\nWaktu thawing tersisa kurang dari 10 menit lagi! Siapkan untuk pindah penyimpanan ke chiller.`);
                 }
                 
-                // Done
                 if (timeLeft <= 0 && !t.notifDone) {
                     t.notifDone = true;
                     needsRender = true;
@@ -2505,12 +2532,10 @@
                 }
             });
 
-            // Update UI timer in real-time if on thawing view
             if (State.currentView === 'thawing') {
                 renderActiveThawing();
             }
         }
-
 
         // --- DATATABLE LOGIC ---
         function loadDataTableView(container, viewId) {
@@ -2521,7 +2546,7 @@
             if (viewId === 'database') {
                 document.getElementById('tableTitle').textContent = "Database Stock Realtime";
                 document.getElementById('tableSubtitle').textContent = "Pantau dan kelola ketersediaan stock.";
-                headers = ['Kode Bahan', 'Nama Bahan', 'Kategori', 'Stock Kecil', 'Stock Besar', 'Lot/Prod/Exp', 'Resto', 'Aksi'];
+                headers = ['Kode Bahan', 'Nama Bahan', 'Kategori', 'Stock Kecil', 'Stock Besar', 'Lot/Prod/Exp', 'Resto', 'Penyimpanan', 'Aksi'];
                 dataList = (State.user.role === 'Admin' || State.user.role === 'Admin Warehouse') ? State.stockData : State.stockData.filter(s => s.Resto === State.user.resto);
             } 
             else if (viewId === 'expired') {
@@ -2553,63 +2578,6 @@
             State.tableData = dataList;
             filterTable(); 
         }
-
-        // --- STORAGE DASHBOARD LOGIC ---
-        function loadStorageView(container) {
-            container.appendChild(document.getElementById('tpl-storage').content.cloneNode(true));
-            renderStorageTable();
-        }
-
-        function renderStorageTable() {
-            const filter = document.getElementById('storageFilter') ? document.getElementById('storageFilter').value : 'All';
-            const search = document.getElementById('storageSearch') ? document.getElementById('storageSearch').value.toLowerCase() : '';
-            const tbody = document.getElementById('storageTableBody');
-            if(!tbody) return;
-
-            const selRestos = (State.user.role === 'Admin' || State.user.role === 'Admin Warehouse') ? State.restos : [State.user.resto];
-            
-            let data = State.stockData.filter(s => selRestos.includes(s.Resto));
-            
-            // Stats
-            let freezer = 0; let chiller = 0; let cold = 0;
-            data.forEach(s => {
-                const peny = s.Penyimpanan || '';
-                if(peny === 'Freezer') freezer++;
-                else if(peny === 'Chiller') chiller++;
-                else if(peny === 'Cold Storage') cold++;
-            });
-            document.getElementById('storeFreezerCount').innerHTML = `${freezer} <span class="text-sm font-normal text-white/80">Item</span>`;
-            document.getElementById('storeChillerCount').innerHTML = `${chiller} <span class="text-sm font-normal text-white/80">Item</span>`;
-            document.getElementById('storeColdCount').innerHTML = `${cold} <span class="text-sm font-normal text-white/80">Item</span>`;
-
-            // Filter
-            if (filter !== 'All') data = data.filter(s => s.Penyimpanan === filter);
-            if (search) data = data.filter(s => s.NamaBahan.toLowerCase().includes(search) || s.KodeBahan.toLowerCase().includes(search));
-
-            if(data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400 italic">Tidak ada item dalam kategori ini.</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = data.map(s => {
-                let badge = 'bg-slate-100 text-slate-700';
-                if(s.Penyimpanan === 'Freezer') badge = 'bg-blue-100 text-blue-700';
-                else if(s.Penyimpanan === 'Chiller') badge = 'bg-cyan-100 text-cyan-700';
-                else if(s.Penyimpanan === 'Cold Storage') badge = 'bg-indigo-100 text-indigo-700';
-                
-                return `
-                <tr class="hover:bg-slate-50">
-                    <td class="px-5 py-3 font-mono text-xs text-blue-600">${s.KodeBahan}</td>
-                    <td class="px-5 py-3 font-medium">${s.NamaBahan} <div class="text-[10px] text-slate-500 font-mono">Lot: ${s.KodeLot||'-'}</div></td>
-                    <td class="px-5 py-3"><span class="px-2 py-1 rounded text-xs font-bold ${badge}">${s.Penyimpanan || 'Tidak Set'}</span></td>
-                    <td class="px-5 py-3 font-bold text-slate-700">${s.QtyBesar}</td>
-                    <td class="px-5 py-3 font-medium text-slate-500">${s.QtyKecil}</td>
-                    <td class="px-5 py-3 text-xs">${s.Resto}</td>
-                </tr>
-                `;
-            }).join('');
-        }
-
         function filterTable() {
             const wrap = document.getElementById('wrapDataTable'); if(wrap) wrap.classList.add('updating');
             setTimeout(() => {
@@ -2645,7 +2613,8 @@
                     }
                     cols = `<td class="px-5 py-3 font-mono text-xs bg-slate-100">${r.KodeBahan}</td><td class="px-5 py-3 font-medium">${r.NamaBahan}</td>
                     <td class="px-5 py-3 text-xs">${r.Kategori}</td><td class="px-5 py-3">${r.QtyKecil}</td><td class="px-5 py-3 font-bold text-blue-600">${r.QtyBesar}</td>
-                    <td class="px-5 py-3 text-xs">L:${r.KodeLot}<br>P:${r.KodeProduksi}<br>E:${r.ExpDate}</td><td class="px-5 py-3 text-xs">${r.Resto}</td><td class="px-5 py-3 text-center whitespace-nowrap">${dbActionBtn}</td>`;
+                    <td class="px-5 py-3 text-xs">L:${r.KodeLot}<br>P:${r.KodeProduksi}<br>E:${r.ExpDate}</td><td class="px-5 py-3 text-xs">${r.Resto}</td>
+                    <td class="px-5 py-3 text-xs">${r.Penyimpanan || '-'}</td><td class="px-5 py-3 text-center whitespace-nowrap">${dbActionBtn}</td>`;
                 } else if (State.currentView === 'expired') {
                     const stColor = r.Status === 'Expired' ? 'bg-red-100 text-red-700' : (r.Status === 'Warning' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700');
                     let expActionBtn = `<button onclick="viewStock('${r.KodeBahan}', '${r.Resto}', '${r.KodeLot}', '${r.KodeProduksi}', '${r.ExpDate}')" class="text-blue-500 hover:bg-blue-50 p-1.5 rounded" title="View Detail"><i class="fa-solid fa-eye"></i></button>`;
@@ -3054,6 +3023,117 @@
             document.getElementById('setTab-master').scrollIntoView({behavior: 'smooth'});
         }
 
+        // --- STORAGE LOGIC ---
+        function loadStorageView(container) {
+            container.appendChild(document.getElementById('tpl-storage').content.cloneNode(true));
+            renderStorageTable();
+        }
+
+        function renderStorageTable() {
+            const filter = document.getElementById('storageFilter').value;
+            const search = document.getElementById('storageSearch').value.toLowerCase();
+            const tbody = document.getElementById('storageTableBody');
+            
+            let data = State.stockData;
+            if (State.user.role !== 'Admin' && State.user.role !== 'Admin Warehouse') {
+                data = data.filter(s => s.Resto === State.user.resto);
+            }
+
+            let freezerCount = 0; let chillerCount = 0; let coldCount = 0;
+
+            data.forEach(s => {
+                if(s.Penyimpanan === 'Freezer') freezerCount++;
+                if(s.Penyimpanan === 'Chiller') chillerCount++;
+                if(s.Penyimpanan === 'Cold Storage') coldCount++;
+            });
+
+            const fCountEl = document.getElementById('storeFreezerCount');
+            const cCountEl = document.getElementById('storeChillerCount');
+            const csCountEl = document.getElementById('storeColdCount');
+
+            if(fCountEl) fCountEl.innerHTML = `${freezerCount} <span class="text-sm font-normal text-white/80">Item</span>`;
+            if(cCountEl) cCountEl.innerHTML = `${chillerCount} <span class="text-sm font-normal text-white/80">Item</span>`;
+            if(csCountEl) csCountEl.innerHTML = `${coldCount} <span class="text-sm font-normal text-white/80">Item</span>`;
+
+            if(filter !== 'All') {
+                data = data.filter(s => s.Penyimpanan === filter);
+            }
+
+            if(search) {
+                data = data.filter(s => 
+                    s.KodeBahan.toLowerCase().includes(search) || 
+                    s.NamaBahan.toLowerCase().includes(search) || 
+                    s.Resto.toLowerCase().includes(search)
+                );
+            }
+
+            if(data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">Tidak ada data stock pada kategori penyimpanan ini.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.map(s => {
+                let badgeClass = 'bg-slate-100 text-slate-600';
+                if(s.Penyimpanan === 'Freezer') badgeClass = 'bg-blue-100 text-blue-700';
+                if(s.Penyimpanan === 'Chiller') badgeClass = 'bg-cyan-100 text-cyan-700';
+                if(s.Penyimpanan === 'Cold Storage') badgeClass = 'bg-indigo-100 text-indigo-700';
+                if(s.Penyimpanan === 'Dry Storage') badgeClass = 'bg-amber-100 text-amber-700';
+
+                return `
+                <tr class="hover:bg-slate-50">
+                    <td class="px-5 py-3 font-mono text-xs text-blue-600 font-bold">${s.KodeBahan}</td>
+                    <td class="px-5 py-3">
+                        <div class="font-medium text-slate-800">${s.NamaBahan}</div>
+                        <div class="text-[10px] text-slate-500">L:${s.KodeLot} | P:${s.KodeProduksi} | E:${s.ExpDate}</div>
+                    </td>
+                    <td class="px-5 py-3"><span class="px-2 py-1 rounded text-[10px] font-bold ${badgeClass}">${s.Penyimpanan || '-'}</span></td>
+                    <td class="px-5 py-3 font-bold text-slate-700">${s.QtyBesar}</td>
+                    <td class="px-5 py-3 text-slate-600">${s.QtyKecil}</td>
+                    <td class="px-5 py-3 text-xs">${s.Resto}</td>
+                    <td class="px-5 py-3 text-center">
+                        <button onclick="editPenyimpanan('${s.KodeBahan}', '${s.Resto}', '${s.KodeLot}', '${s.KodeProduksi}', '${s.ExpDate}', '${s.Penyimpanan}')" class="text-amber-500 hover:bg-amber-50 p-1.5 rounded" title="Edit Penyimpanan"><i class="fa-solid fa-pen"></i></button>
+                    </td>
+                </tr>
+                `;
+            }).join('');
+        }
+
+        window.editPenyimpanan = function(kode, resto, lot, prod, exp, currentPenyimpanan) {
+            Swal.fire({
+                title: 'Edit Penyimpanan',
+                html: `
+                    <div class="text-left space-y-3 mt-3">
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Kategori Penyimpanan Baru</label>
+                        <select id="editPenyimpananSelect" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                            <option value="-" ${currentPenyimpanan === '-' ? 'selected' : ''}>- Belum Ditentukan -</option>
+                            <option value="Chiller" ${currentPenyimpanan === 'Chiller' ? 'selected' : ''}>Chiller</option>
+                            <option value="Cold Storage" ${currentPenyimpanan === 'Cold Storage' ? 'selected' : ''}>Cold Storage</option>
+                            <option value="Freezer" ${currentPenyimpanan === 'Freezer' ? 'selected' : ''}>Freezer</option>
+                            <option value="Dry Storage" ${currentPenyimpanan === 'Dry Storage' ? 'selected' : ''}>Dry Storage</option>
+                        </select>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonColor: '#3b82f6',
+                confirmButtonText: 'Simpan',
+                preConfirm: () => {
+                    return document.getElementById('editPenyimpananSelect').value;
+                }
+            }).then(res => {
+                if(res.isConfirmed) {
+                    const newPenyimpanan = res.value;
+                    const stockIndex = State.stockData.findIndex(s => s.KodeBahan === kode && s.Resto === resto && s.KodeLot === lot && s.KodeProduksi === prod && s.ExpDate === exp);
+                    
+                    if(stockIndex > -1) {
+                        State.stockData[stockIndex].Penyimpanan = newPenyimpanan;
+                        renderStorageTable();
+                        Swal.fire({icon: 'success', title: 'Tersimpan!', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500});
+                        
+                        runGas('updateStorageData', {kode, resto, lot, produksi: prod, exp, penyimpanan: newPenyimpanan});
+                    }
+                }
+            });
+        }
     </script>
 </body>
 </html>
