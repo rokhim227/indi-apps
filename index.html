@@ -1771,6 +1771,52 @@
         }
 
 
+        // --- FORM INPUT BARANG MASUK / KELUAR ---
+        function loadScanView(container, type) {
+            State.transactionType = type;
+            container.appendChild(document.getElementById('tpl-scan').content.cloneNode(true));
+            document.getElementById('scanPageTitle').textContent = type === 'inbound' ? 'Input Barang Masuk' : 'Input Barang Keluar';
+            document.getElementById('scanHistTitle').textContent = type === 'inbound' ? 'Riwayat Barang Masuk' : 'Riwayat Barang Keluar';
+            
+            // Konfigurasi Inbound Modal (Toggle SJ vs Manual)
+            if (type === 'inbound') {
+                document.getElementById('inboundModeToggle').classList.remove('hidden');
+                switchInboundMode('manual'); // Default
+            } else {
+                document.getElementById('inboundModeToggle').classList.add('hidden');
+                document.getElementById('containerInboundSj').classList.add('hidden');
+                document.getElementById('containerManual').classList.remove('hidden');
+            }
+
+            const selResto = document.getElementById('frmResto');
+            if (State.user.role === 'Admin' || State.user.role === 'Admin Warehouse') {
+                selResto.innerHTML = State.restos.map(r => `<option value="${r}" ${r===State.user.resto?'selected':''}>${r}</option>`).join('');
+                selResto.disabled = false;
+                selResto.classList.remove('bg-slate-100');
+            } else {
+                selResto.innerHTML = `<option value="${State.user.resto}" selected>${State.user.resto}</option>`;
+                selResto.disabled = true;
+                selResto.classList.add('bg-slate-100');
+            }
+
+            if(type === 'outbound') {
+                document.getElementById('stockInfoWrap').classList.remove('hidden');
+                document.getElementById('btnSubmitTrx').classList.replace('bg-blue-600', 'bg-rose-600');
+                document.getElementById('btnSubmitTrx').classList.replace('hover:bg-blue-700', 'hover:bg-rose-700');
+                
+                const selClass = "w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white transition-all";
+                document.getElementById('boxLot').innerHTML = `<label class="block text-xs font-medium text-slate-500 mb-1">Kode Lot (Pilih)</label><select id="frmLot" class="${selClass}" onchange="handleBatchChange('lot')"><option value="-">-</option></select>`;
+                document.getElementById('boxProd').innerHTML = `<label class="block text-xs font-medium text-slate-500 mb-1">Kode Produksi (Pilih)</label><select id="frmProd" class="${selClass}" onchange="handleBatchChange('prod')"><option value="-">-</option></select>`;
+                document.getElementById('boxExp').innerHTML = `<label class="block text-xs font-medium text-slate-500 mb-1">Expired Date (Pilih)</label><select id="frmExp" class="${selClass}" onchange="handleBatchChange('exp')"><option value="-">-</option></select>`;
+            }
+
+            buildCheckboxDropdown('scan', 'scan');
+            initScanHistory();
+            
+            setupDropdownBahan('frm');
+            resetFormUI();
+        }
+
         // --- INBOUND VIA SURAT JALAN LOGIC ---
         function switchInboundMode(mode) {
             const btnMan = document.getElementById('btnModeManual'); const btnSj = document.getElementById('btnModeSj');
