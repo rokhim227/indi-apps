@@ -738,138 +738,6 @@
         </div>
     </template>
 
-    <!-- 3D. STOCK PENYIMPANAN -->
-    <template id="tpl-storage">
-        <div class="max-w-5xl mx-auto space-y-6 animate-fade-in pb-10 md:pb-4">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h2 class="text-xl font-bold text-slate-800">Stock Kategori Penyimpanan</h2>
-                    <p class="text-xs text-slate-500">Pantau kapasitas Chiller, Freezer, dan Cold Storage</p>
-                </div>
-                <button onclick="refreshGlobalData(this)" class="bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-100 transition shadow-sm flex items-center"><i class="fa-solid fa-rotate-right mr-1.5"></i> Refresh</button>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden">
-                    <div class="absolute -right-4 -bottom-4 opacity-20"><i class="fa-solid fa-snowflake text-7xl"></i></div>
-                    <p class="text-blue-100 text-sm font-medium mb-1">Freezer</p>
-                    <h3 class="text-3xl font-bold mb-1" id="storeFreezerCount">0 <span class="text-sm font-normal text-white/80">Item</span></h3>
-                </div>
-                <div class="bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden">
-                    <div class="absolute -right-4 -bottom-4 opacity-20"><i class="fa-solid fa-wind text-7xl"></i></div>
-                    <p class="text-cyan-100 text-sm font-medium mb-1">Chiller</p>
-                    <h3 class="text-3xl font-bold mb-1" id="storeChillerCount">0 <span class="text-sm font-normal text-white/80">Item</span></h3>
-                </div>
-                <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden">
-                    <div class="absolute -right-4 -bottom-4 opacity-20"><i class="fa-solid fa-icicles text-7xl"></i></div>
-                    <p class="text-indigo-100 text-sm font-medium mb-1">Cold Storage</p>
-                    <h3 class="text-3xl font-bold mb-1" id="storeColdCount">0 <span class="text-sm font-normal text-white/80">Item</span></h3>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                <div class="p-4 border-b border-slate-100 bg-slate-50 flex gap-4 items-center">
-                    <select id="storageFilter" onchange="renderStorageTable()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 outline-none w-48">
-                        <option value="All">Semua Penyimpanan</option>
-                        <option value="Freezer">Freezer</option>
-                        <option value="Chiller">Chiller</option>
-                        <option value="Cold Storage">Cold Storage</option>
-                    </select>
-                    <div class="relative flex-1">
-                        <i class="fa-solid fa-search absolute left-3 top-2.5 text-slate-400"></i>
-                        <input type="text" id="storageSearch" onkeyup="renderStorageTable()" class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-blue-500 outline-none" placeholder="Cari bahan...">
-                    </div>
-                </div>
-                <div class="overflow-x-auto p-0">
-                    <table class="w-full text-left text-sm whitespace-nowrap min-w-max">
-                        <thead class="bg-white border-b border-slate-100">
-                            <tr><th class="px-5 py-3">Kode</th><th class="px-5 py-3">Bahan</th><th class="px-5 py-3">Penyimpanan</th><th class="px-5 py-3">Stock Besar</th><th class="px-5 py-3">Stock Kecil</th><th class="px-5 py-3">Resto</th></tr>
-                        </thead>
-                        <tbody id="storageTableBody" class="divide-y divide-slate-50"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </template>
-
-    <!-- 4. DATATABLE (Generic for Database, Expired, Adjustment) -->
-    <template id="tpl-datatable">
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col animate-fade-in mb-24 md:mb-6">
-            <div class="p-5 border-b border-slate-100">
-                <div class="flex flex-col md:flex-row justify-between gap-4 mb-4">
-                    <div>
-                        <h2 class="text-xl font-bold text-slate-800" id="tableTitle">Database Stock</h2>
-                        <p class="text-xs text-slate-500" id="tableSubtitle">Realtime update stock bahan.</p>
-                            <div class="w-1/3">
-                                <label class="block text-xs font-medium text-slate-500 mb-1">Satuan</label>
-                                <select id="frmSatuan" class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-slate-100" disabled></select>
-                            </div>
-                        </div>
-                        <div id="boxPenyimpanan" class="col-span-1 md:col-span-2 hidden">
-                            <label class="block text-xs font-medium text-slate-500 mb-1">Penyimpanan (Khusus Inbound)</label>
-                            <select id="frmPenyimpanan" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
-                                <option value="-">- Pilih Kategori Penyimpanan -</option>
-                                <option value="Chiller">Chiller</option>
-                                <option value="Cold Storage">Cold Storage</option>
-                                <option value="Freezer">Freezer</option>
-                                <option value="Dry Storage">Dry Storage</option>
-                            </select>
-                        </div>
-                        <div id="stockInfoWrap" class="hidden col-span-1 md:col-span-2 bg-blue-50 p-3 rounded-lg border border-blue-100 transition-colors">
-    <!-- 3D. STOCK PENYIMPANAN -->
-    <template id="tpl-storage">
-        <div class="max-w-5xl mx-auto space-y-6 animate-fade-in pb-10 md:pb-4">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h2 class="text-xl font-bold text-slate-800">Stock Kategori Penyimpanan</h2>
-                    <p class="text-xs text-slate-500">Pantau kapasitas Chiller, Freezer, dan Cold Storage</p>
-                </div>
-                <button onclick="refreshGlobalData(this)" class="bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-100 transition shadow-sm flex items-center"><i class="fa-solid fa-rotate-right mr-1.5"></i> Refresh</button>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden">
-                    <div class="absolute -right-4 -bottom-4 opacity-20"><i class="fa-solid fa-snowflake text-7xl"></i></div>
-                    <p class="text-blue-100 text-sm font-medium mb-1">Freezer</p>
-                    <h3 class="text-3xl font-bold mb-1" id="storeFreezerCount">0 <span class="text-sm font-normal text-white/80">Item</span></h3>
-                </div>
-                <div class="bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden">
-                    <div class="absolute -right-4 -bottom-4 opacity-20"><i class="fa-solid fa-wind text-7xl"></i></div>
-                    <p class="text-cyan-100 text-sm font-medium mb-1">Chiller</p>
-                    <h3 class="text-3xl font-bold mb-1" id="storeChillerCount">0 <span class="text-sm font-normal text-white/80">Item</span></h3>
-                </div>
-                <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden">
-                    <div class="absolute -right-4 -bottom-4 opacity-20"><i class="fa-solid fa-icicles text-7xl"></i></div>
-                    <p class="text-indigo-100 text-sm font-medium mb-1">Cold Storage</p>
-                    <h3 class="text-3xl font-bold mb-1" id="storeColdCount">0 <span class="text-sm font-normal text-white/80">Item</span></h3>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                <div class="p-4 border-b border-slate-100 bg-slate-50 flex gap-4 items-center">
-                    <select id="storageFilter" onchange="renderStorageTable()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 outline-none w-48">
-                        <option value="All">Semua Penyimpanan</option>
-                        <option value="Freezer">Freezer</option>
-                        <option value="Chiller">Chiller</option>
-                        <option value="Cold Storage">Cold Storage</option>
-                    </select>
-                    <div class="relative flex-1">
-                        <i class="fa-solid fa-search absolute left-3 top-2.5 text-slate-400"></i>
-                        <input type="text" id="storageSearch" onkeyup="renderStorageTable()" class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-blue-500 outline-none" placeholder="Cari bahan...">
-                    </div>
-                </div>
-                <div class="overflow-x-auto p-0">
-                    <table class="w-full text-left text-sm whitespace-nowrap min-w-max">
-                        <thead class="bg-white border-b border-slate-100">
-                            <tr><th class="px-5 py-3">Kode</th><th class="px-5 py-3">Bahan</th><th class="px-5 py-3">Penyimpanan</th><th class="px-5 py-3">Stock Besar</th><th class="px-5 py-3">Stock Kecil</th><th class="px-5 py-3">Resto</th></tr>
-                        </thead>
-                        <tbody id="storageTableBody" class="divide-y divide-slate-50"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </template>
-
     <!-- 4. DATATABLE (Generic for Database, Expired, Adjustment) -->
     <template id="tpl-datatable">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col animate-fade-in mb-24 md:mb-6">
@@ -1283,8 +1151,7 @@
                             KodeBahan: kb, NamaBahan: nm || s.NamaBahan, Kategori: kat || s.Kategori, Resto: rs, 
                             QtyKecil: s.QtyKecil || s['Stock Kecil'] || s.Qty || '', 
                             QtyBesar: s.QtyBesar || s['Stock Besar'] || '', 
-                            KodeLot: kl, KodeProduksi: kp, ExpDate: ke,
-                            Penyimpanan: s.Penyimpanan || s.penyimpanan || '-'
+                            KodeLot: kl, KodeProduksi: kp, ExpDate: ke
                         };
                     } else {
                         let currKecilStr = String(groupedStock[key].QtyKecil || '');
@@ -1398,7 +1265,6 @@
 
         const Menus = [
             { id: 'dashboard', icon: 'fa-chart-pie', label: 'Dashboard', roles: ['Admin', 'Admin Warehouse', 'Manager', 'Store Manager', 'Stocker'] },
-            { id: 'storage', icon: 'fa-boxes-stacked', label: 'Stock Penyimpanan', roles: ['Admin', 'Manager', 'Store Manager', 'Stocker'] },
             { id: 'pengiriman', icon: 'fa-truck-arrow-right', label: 'Pengiriman (DO)', roles: ['Admin', 'Admin Warehouse'] },
             { id: 'transfer', icon: 'fa-right-left', label: 'Pindah Store', roles: ['Admin', 'Manager', 'Store Manager'] },
             { id: 'database', icon: 'fa-database', label: 'Database Stock', roles: ['Admin', 'Admin Warehouse', 'Manager', 'Store Manager', 'Stocker'] },
@@ -1497,7 +1363,6 @@
             closeScanner();
             
             if (viewId === 'dashboard') loadDashboard(container);
-            else if (viewId === 'storage') loadStorageView(container);
             else if (viewId === 'inbound' || viewId === 'outbound') loadScanView(container, viewId);
             else if (viewId === 'settings') loadSettingsView(container);
             else if (viewId === 'pengiriman') loadPengirimanView(container);
@@ -1642,20 +1507,13 @@
                 renderRecapTbl(inItemRecap, 'dashInItemRecap');
                 renderRecapTbl(outItemRecap, 'dashOutItemRecap');
 
-                // Mengubah UI berdasarkan Role (Warehouse vs Store)
                 if (State.user.role === 'Admin Warehouse') {
                     document.querySelectorAll('.store-only-card').forEach(el => el.classList.add('hidden'));
                     document.querySelectorAll('.wh-only-card').forEach(el => el.classList.remove('hidden'));
-                    
                     let sjAktif = 0; let sjSelesai = 0;
-                    State.suratJalanList.forEach(sj => {
-                        if(sj.status === 'Dikirim' || !sj.status) sjAktif++;
-                        else sjSelesai++;
-                    });
-                    const elSjCount = document.getElementById('dashSjCount');
-                    const elSjDone = document.getElementById('dashSjDoneCount');
-                    if (elSjCount) elSjCount.innerHTML = `${sjAktif} <span class="text-sm font-normal">Dokumen</span>`;
-                    if (elSjDone) elSjDone.innerHTML = `${sjSelesai} <span class="text-sm font-normal">Dokumen</span>`;
+                    State.suratJalanList.forEach(sj => { if(sj.status === 'Dikirim' || !sj.status) sjAktif++; else sjSelesai++; });
+                    document.getElementById('dashSjCount').innerHTML = `${sjAktif} <span class="text-sm font-normal">Dokumen</span>`;
+                    document.getElementById('dashSjDoneCount').innerHTML = `${sjSelesai} <span class="text-sm font-normal">Dokumen</span>`;
                 } else {
                     document.querySelectorAll('.store-only-card').forEach(el => el.classList.remove('hidden'));
                     document.querySelectorAll('.wh-only-card').forEach(el => el.classList.add('hidden'));
@@ -1943,7 +1801,6 @@
 
             if(type === 'outbound') {
                 document.getElementById('stockInfoWrap').classList.remove('hidden');
-                document.getElementById('boxPenyimpanan').classList.add('hidden');
                 document.getElementById('btnSubmitTrx').classList.replace('bg-blue-600', 'bg-rose-600');
                 document.getElementById('btnSubmitTrx').classList.replace('hover:bg-blue-700', 'hover:bg-rose-700');
                 
@@ -1951,8 +1808,6 @@
                 document.getElementById('boxLot').innerHTML = `<label class="block text-xs font-medium text-slate-500 mb-1">Kode Lot (Pilih)</label><select id="frmLot" class="${selClass}" onchange="handleBatchChange('lot')"><option value="-">-</option></select>`;
                 document.getElementById('boxProd').innerHTML = `<label class="block text-xs font-medium text-slate-500 mb-1">Kode Produksi (Pilih)</label><select id="frmProd" class="${selClass}" onchange="handleBatchChange('prod')"><option value="-">-</option></select>`;
                 document.getElementById('boxExp').innerHTML = `<label class="block text-xs font-medium text-slate-500 mb-1">Expired Date (Pilih)</label><select id="frmExp" class="${selClass}" onchange="handleBatchChange('exp')"><option value="-">-</option></select>`;
-            } else {
-                document.getElementById('boxPenyimpanan').classList.remove('hidden');
             }
 
             buildCheckboxDropdown('scan', 'scan');
@@ -2093,8 +1948,6 @@
             if (keepResto && currentResto && document.getElementById('frmResto')) document.getElementById('frmResto').value = currentResto;
             
             const sel = document.getElementById('frmSatuan'); if(sel) { sel.innerHTML = ''; sel.disabled = true; }
-            const peny = document.getElementById('frmPenyimpanan'); if(peny) peny.value = '-';
-            
             if(State.transactionType === 'outbound') {
                 const sys = document.getElementById('frmStockSystem'); if(sys) sys.textContent = "0";
                 const bsr = document.getElementById('frmStockBesar'); if(bsr) bsr.textContent = "";
@@ -2116,7 +1969,6 @@
                 lot: document.getElementById('frmLot').value || '-',
                 produksi: document.getElementById('frmProd').value || '-', 
                 exp: document.getElementById('frmExp').value || '-',
-                penyimpanan: document.getElementById('frmPenyimpanan') && State.transactionType === 'inbound' ? document.getElementById('frmPenyimpanan').value : '-',
                 petugas: State.user.name, resto: document.getElementById('frmResto').value 
             };
 
@@ -2167,7 +2019,7 @@
                     payload.newQtyKecil = qtyKecilInput + ' ' + masterItem.SatuanKecil;
                     payload.newQtyBesar = (qtyKecilInput / parseFloat(masterItem.Konversi)).toFixed(2) + ' ' + masterItem.SatuanBesar;
                     State.stockData.push({
-                        KodeBahan: payload.kode, NamaBahan: payload.nama, Kategori: payload.kategori, Resto: payload.resto, Penyimpanan: payload.penyimpanan,
+                        KodeBahan: payload.kode, NamaBahan: payload.nama, Kategori: payload.kategori, Resto: payload.resto,
                         QtyBesar: payload.newQtyBesar, QtyKecil: payload.newQtyKecil, KodeLot: payload.lot, KodeProduksi: payload.produksi, ExpDate: payload.exp
                     });
                 } else {
@@ -2457,10 +2309,6 @@
             let fOut = State.outHistory.filter(r => r.Kategori === 'Frozen' && r.Tanggal.startsWith(todayStr) && allowedThawing.includes(r.NamaBahan));
             if(selResto !== 'all') fOut = fOut.filter(r => r.Resto === selResto);
 
-            // Hide already active thawings
-            const activeTrxIds = State.activeThawings.map(t => t.trxId);
-            fOut = fOut.filter(r => !activeTrxIds.includes(r.ID));
-
             if(fOut.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Tidak ada bahan Frozen keluar hari ini.</td></tr>';
                 return;
@@ -2468,24 +2316,22 @@
 
             tbody.innerHTML = fOut.map((r, i) => {
                 const jam = r.Tanggal.split(' ')[1].substring(0,5);
-                const safeNama = r.NamaBahan.replace(/'/g, "\\'");
-                const safeLot = (r.KodeLot || '-').replace(/'/g, "\\'");
                 return `
                 <tr class="hover:bg-slate-50 border-b border-slate-50">
                     <td class="px-4 py-2 font-mono text-xs">${jam}</td>
-                    <td class="px-4 py-2 font-medium">${r.NamaBahan} <div class="text-[10px] text-slate-500">${r.Resto} | Lot: ${r.KodeLot || '-'}</div></td>
+                    <td class="px-4 py-2 font-medium">${r.NamaBahan} <div class="text-[10px] text-slate-500">${r.Resto}</div></td>
                     <td class="px-4 py-2 font-bold text-blue-600">${Math.abs(r.Qty)} <span class="font-normal text-xs text-slate-500">${r.Satuan}</span></td>
                     <td class="px-4 py-2 text-center">
-                        <button onclick="startThawing('${r.ID}', '${safeNama}', '${r.Resto}', ${Math.abs(r.Qty)}, '${r.Satuan}', '${safeLot}')" class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700 shadow-sm">Mulai</button>
+                        <button onclick="startThawing('${r.NamaBahan}', '${r.Resto}', ${Math.abs(r.Qty)}, '${r.Satuan}')" class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700 shadow-sm">Mulai</button>
                     </td>
                 </tr>
                 `;
             }).join('');
         }
-        function startThawing(trxId, nama, resto, qty, satuan, lot) {
+        function startThawing(nama, resto, qty, satuan) {
             Swal.fire({
                 title: 'Mulai Thawing',
-                html: `Bahan: <b>${nama}</b> (Lot: ${lot})<br>Berapa menit durasi thawing?`,
+                html: `Bahan: <b>${nama}</b><br>Berapa menit durasi thawing?`,
                 input: 'number',
                 inputAttributes: { min: 1, step: 1, value: 60 },
                 showCancelButton: true, confirmButtonText: 'Mulai Timer'
@@ -2495,12 +2341,11 @@
                     const now = new Date().getTime();
                     State.activeThawings.push({
                         id: 'TW' + Date.now(),
-                        trxId, nama, resto, qty, satuan, lot,
+                        nama, resto, qty, satuan, 
                         startTime: now, 
                         endTime: now + (durasi * 60000),
                         notif10: false, notifDone: false
                     });
-                    renderThawingSource();
                     renderActiveThawing();
                     Swal.fire({icon: 'success', title: 'Timer Thawing Berjalan!', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500});
                 }
@@ -2531,12 +2376,11 @@
                 <div class="${bgClass} p-3 rounded-lg border border-slate-200 flex justify-between items-center shadow-sm">
                     <div>
                         <div class="font-bold text-slate-800">${t.nama} <span class="text-xs font-normal text-slate-500">(${t.qty} ${t.satuan})</span></div>
-                        <div class="text-xs text-slate-500"><i class="fa-solid fa-store mr-1"></i>${t.resto} | Lot: ${t.lot}</div>
-                        <div class="text-[10px] text-slate-400 mt-0.5">Mulai: ${new Date(t.startTime).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})}</div>
+                        <div class="text-xs text-slate-500"><i class="fa-solid fa-store mr-1"></i>${t.resto}</div>
                     </div>
                     <div class="flex items-center gap-3">
                         <div class="font-mono text-xl font-bold ${colorClass}">${timeStr}</div>
-                        <button onclick="stopThawing('${t.id}')" class="text-red-500 hover:bg-red-100 p-1.5 rounded transition"><i class="fa-solid fa-check"></i></button>
+                        <button onclick="stopThawing('${t.id}')" class="text-red-500 hover:bg-red-100 p-1.5 rounded transition"><i class="fa-solid fa-xmark"></i></button>
                     </div>
                 </div>
                 `;
@@ -2544,7 +2388,6 @@
         }
         function stopThawing(id) {
             State.activeThawings = State.activeThawings.filter(t => t.id !== id);
-            renderThawingSource();
             renderActiveThawing();
         }
 
@@ -2619,63 +2462,6 @@
             State.tableData = dataList;
             filterTable(); 
         }
-
-        // --- STORAGE DASHBOARD LOGIC ---
-        function loadStorageView(container) {
-            container.appendChild(document.getElementById('tpl-storage').content.cloneNode(true));
-            renderStorageTable();
-        }
-
-        function renderStorageTable() {
-            const filter = document.getElementById('storageFilter') ? document.getElementById('storageFilter').value : 'All';
-            const search = document.getElementById('storageSearch') ? document.getElementById('storageSearch').value.toLowerCase() : '';
-            const tbody = document.getElementById('storageTableBody');
-            if(!tbody) return;
-
-            const selRestos = (State.user.role === 'Admin' || State.user.role === 'Admin Warehouse') ? State.restos : [State.user.resto];
-            
-            let data = State.stockData.filter(s => selRestos.includes(s.Resto));
-            
-            // Stats
-            let freezer = 0; let chiller = 0; let cold = 0;
-            data.forEach(s => {
-                const peny = s.Penyimpanan || '';
-                if(peny === 'Freezer') freezer++;
-                else if(peny === 'Chiller') chiller++;
-                else if(peny === 'Cold Storage') cold++;
-            });
-            document.getElementById('storeFreezerCount').innerHTML = `${freezer} <span class="text-sm font-normal text-white/80">Item</span>`;
-            document.getElementById('storeChillerCount').innerHTML = `${chiller} <span class="text-sm font-normal text-white/80">Item</span>`;
-            document.getElementById('storeColdCount').innerHTML = `${cold} <span class="text-sm font-normal text-white/80">Item</span>`;
-
-            // Filter
-            if (filter !== 'All') data = data.filter(s => s.Penyimpanan === filter);
-            if (search) data = data.filter(s => s.NamaBahan.toLowerCase().includes(search) || s.KodeBahan.toLowerCase().includes(search));
-
-            if(data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400 italic">Tidak ada item dalam kategori ini.</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = data.map(s => {
-                let badge = 'bg-slate-100 text-slate-700';
-                if(s.Penyimpanan === 'Freezer') badge = 'bg-blue-100 text-blue-700';
-                else if(s.Penyimpanan === 'Chiller') badge = 'bg-cyan-100 text-cyan-700';
-                else if(s.Penyimpanan === 'Cold Storage') badge = 'bg-indigo-100 text-indigo-700';
-                
-                return `
-                <tr class="hover:bg-slate-50">
-                    <td class="px-5 py-3 font-mono text-xs text-blue-600">${s.KodeBahan}</td>
-                    <td class="px-5 py-3 font-medium">${s.NamaBahan} <div class="text-[10px] text-slate-500 font-mono">Lot: ${s.KodeLot||'-'}</div></td>
-                    <td class="px-5 py-3"><span class="px-2 py-1 rounded text-xs font-bold ${badge}">${s.Penyimpanan || 'Tidak Set'}</span></td>
-                    <td class="px-5 py-3 font-bold text-slate-700">${s.QtyBesar}</td>
-                    <td class="px-5 py-3 font-medium text-slate-500">${s.QtyKecil}</td>
-                    <td class="px-5 py-3 text-xs">${s.Resto}</td>
-                </tr>
-                `;
-            }).join('');
-        }
-
         function filterTable() {
             const wrap = document.getElementById('wrapDataTable'); if(wrap) wrap.classList.add('updating');
             setTimeout(() => {
