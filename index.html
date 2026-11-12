@@ -1056,16 +1056,31 @@
         async function sendScheduledReports() {
             if(!State.settings.telegram_token || !State.settings.telegram_chat_id) return;
             
-            const todayStr = new Date().toISOString().split('T')[0];
-            const dateFmt = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            const localTodayStr = `${yyyy}-${mm}-${dd}`;
+            const dateFmt = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             
             // Group by Resto
             for (const resto of State.restos) {
-                let inToday = State.inHistory.filter(x => x.Resto === resto && x.Tanggal.startsWith(todayStr));
-                let outToday = State.outHistory.filter(x => x.Resto === resto && x.Tanggal.startsWith(todayStr));
+                let inToday = State.inHistory.filter(x => x.Resto === resto && x.Tanggal.startsWith(localTodayStr));
+                let outToday = State.outHistory.filter(x => x.Resto === resto && x.Tanggal.startsWith(localTodayStr));
                 let stock = State.stockData.filter(x => x.Resto === resto);
 
-                let msg = `📊 <b>REKAP HARIAN - ${resto}</b> 📊\n📅 ${dateFmt}\n⏰ ${new Date().toLocaleTimeString('id-ID')}\n\n`;
+                let sjToday = State.suratJalanList.filter(sj => {
+                    let sjDate = sj.tanggal.split(' ')[0];
+                    return sjDate === localTodayStr && (sj.restoTujuan === resto || sj.pengirim === 'Resto Pusat' || resto === 'Resto Pusat');
+                });
+
+                let expWarning = stock.filter(s => {
+                    if(!s.ExpDate || s.ExpDate === '-') return false;
+                    const days = Math.ceil((new Date(s.ExpDate) - now) / (1000 * 60 * 60 * 24));
+                    return days <= 30; // H-30 (1 Bulan)
+                });
+
+                let msg = `📊 <b>REKAP HARIAN - ${resto}</b> 📊\n📅 ${dateFmt}\n⏰ ${now.toLocaleTimeString('id-ID')}\n\n`;
                 
                 // Masuk
                 msg += `📥 <b>Barang Masuk Hari Ini:</b>\n`;
@@ -1084,6 +1099,22 @@
                     outToday.forEach(i => outGrp[i.NamaBahan] = (outGrp[i.NamaBahan]||0) + Math.abs(parseFloat(i.Qty)));
                     for(const [k,v] of Object.entries(outGrp)) msg += `- ${k}: ${v}\n`;
                 }
+                
+                msg += `\n<i>*Mutasi Pindah Store antar cabang sudah terakumulasi otomatis pada data Masuk/Keluar di atas.</i>\n`;
+
+                if (sjToday.length > 0) {
+                    msg += `\n🚚 <b>Surat Jalan (DO) Hari Ini:</b>\n`;
+                    sjToday.forEach(sj => {
+                        msg += `- <b>${sj.id}</b> (${sj.status})\n  Tujuan: ${sj.restoTujuan} | ${sj.items.length} Item\n`;
+                    });
+                }
+
+                if (expWarning.length > 0) {
+                    msg += `\n⚠️ <b>Warning Expired (H-30):</b>\n`;
+                    expWarning.forEach(s => {
+                        msg += `- ${s.NamaBahan} (L:${s.KodeLot}) | Exp: ${s.ExpDate}\n`;
+                    });
+                }
 
                 // Stock
                 msg += `\n📦 <b>Stock On Hand (Tersedia):</b>\n`;
@@ -1100,18 +1131,20 @@
         }
 
         // Timer Interval for Clock, Telegram Schedule, and Thawing
+        let lastReportSentMinute = -1;
         setInterval(() => {
             updateClock();
             
             // Check Telegram Schedule
             const now = new Date();
-            const opts = { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
-            const timeStr = now.toLocaleTimeString('en-US', opts);
-            const hm = timeStr.substring(0, 5); // HH:mm
-            const s = timeStr.substring(6, 8);
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const localHm = `${h}:${m}`;
+            const currentMinute = now.getMinutes();
             
-            const triggerTimes = ['09:00', '12:00', '15:00', '18:00', '22:00'];
-            if (triggerTimes.includes(hm) && s === '00') {
+            const triggerTimes = ['07:00', '09:00', '12:00', '15:00', '18:00', '20:00', '22:00'];
+            if (triggerTimes.includes(localHm) && lastReportSentMinute !== currentMinute) {
+                lastReportSentMinute = currentMinute;
                 sendScheduledReports();
             }
             
